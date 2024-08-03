@@ -1,0 +1,8 @@
+# Ignore artifacts:
+build
+coverage
+.next
+out
+
+# Ignore dependency directories
+node_modules
