@@ -19,10 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { Ticket } from '@prisma/client';
 
 type TicketFormData = z.infer<typeof ticketSchema>;
 
-function TicketForm() {
+type TicketFormProps = {
+  ticket?: Ticket;
+};
+
+function TicketForm({ ticket }: TicketFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -34,7 +39,9 @@ function TicketForm() {
       setIsSubmitting(true);
       setError('');
 
-      await axios.post('/api/tickets', values);
+      ticket
+        ? await axios.patch('/api/tickets/' + ticket.id, values)
+        : await axios.post('/api/tickets', values);
       setIsSubmitting(false);
 
       router.push('/tickets');
@@ -56,6 +63,7 @@ function TicketForm() {
           <FormField
             control={form.control}
             name="title"
+            defaultValue={ticket?.title}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ticket Title</FormLabel>
@@ -67,6 +75,7 @@ function TicketForm() {
           />
           <Controller
             name="description"
+            defaultValue={ticket?.description}
             control={form.control}
             render={({ field }) => (
               <SimpleMDE placeholder="description" {...field} />
@@ -76,6 +85,7 @@ function TicketForm() {
             <FormField
               control={form.control}
               name="status"
+              defaultValue={ticket?.status}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
@@ -85,7 +95,10 @@ function TicketForm() {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Status..." />
+                        <SelectValue
+                          defaultValue={ticket?.status}
+                          placeholder="Status..."
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -100,6 +113,7 @@ function TicketForm() {
             <FormField
               control={form.control}
               name="priority"
+              defaultValue={ticket?.priority}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Priority</FormLabel>
@@ -109,7 +123,10 @@ function TicketForm() {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Priority..." />
+                        <SelectValue
+                          defaultValue={ticket?.priority}
+                          placeholder="Priority..."
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -123,7 +140,7 @@ function TicketForm() {
             />
           </div>
           <Button type="submit" disabled={isSubmitting}>
-            Submit
+            {ticket ? 'Update Ticket' : 'Create Ticket'}
           </Button>
         </form>
       </Form>
