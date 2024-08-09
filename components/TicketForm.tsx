@@ -40,7 +40,7 @@ function TicketForm({ ticket }: TicketFormProps) {
       setError('');
 
       ticket
-        ? await axios.patch('/api/tickets/' + ticket.id, values)
+        ? await axios.patch(`/api/tickets/${ticket.id}`, values)
         : await axios.post('/api/tickets', values);
       setIsSubmitting(false);
 
