@@ -4,15 +4,33 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import Pagination from '@/components/Pagination';
 import StatusFilter from '@/components/StatusFilter';
-import { Status } from '@prisma/client';
+import { Status, Ticket } from '@prisma/client';
+
+export type OrderKey = keyof Ticket;
+export type SortOrder = 'asc' | 'desc';
+type OrderBy = `${OrderKey}-${SortOrder}`;
+
+export type SearchParams = {
+  page: string;
+  status: Status;
+  orderBy: OrderBy;
+};
 
 type TicketsProps = {
-  searchParams: { page: string; status: Status };
+  searchParams: SearchParams;
 };
 
 async function Tickets({ searchParams }: TicketsProps) {
   const pageSize = 7;
   const page = parseInt(searchParams.page) || 1;
+
+  const orderKey = searchParams.orderBy
+    ? (searchParams.orderBy.split('-').at(0) as OrderKey)
+    : 'createdAt';
+
+  const direction = searchParams.orderBy
+    ? (searchParams.orderBy.split('-').at(1) as SortOrder)
+    : 'desc';
 
   const statues = Object.values(Status);
 
@@ -20,15 +38,14 @@ async function Tickets({ searchParams }: TicketsProps) {
     ? searchParams.status
     : undefined;
 
-  let where = {};
-
-  status
-    ? (where = { status })
-    : (where = { NOT: [{ status: 'CLOSED' as Status }] });
+  const where = status ? { status } : { NOT: [{ status: 'CLOSED' as Status }] };
 
   const ticketsCount = await prisma.ticket.count({ where });
   const tickets = await prisma.ticket.findMany({
     where,
+    orderBy: {
+      [orderKey]: direction,
+    },
     take: pageSize,
     skip: (page - 1) * pageSize,
   });
@@ -44,7 +61,7 @@ async function Tickets({ searchParams }: TicketsProps) {
         </Link>
         <StatusFilter />
       </div>
-      <DataTable tickets={tickets} />
+      <DataTable tickets={tickets} searchParams={searchParams} />
       <Pagination
         itemCount={ticketsCount}
         pageSize={pageSize}
