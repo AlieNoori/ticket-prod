@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/prisma/db';
-import { ticketSchema } from '@/ValidationSchemas/ticket';
-import { error } from 'console';
+import { ticketPatchSchema } from '@/ValidationSchemas/ticket';
+import { revalidateTag } from 'next/cache';
 
 interface Props {
   params: { id: string };
@@ -9,8 +9,8 @@ interface Props {
 
 export async function PATCH(request: NextRequest, { params }: Props) {
   const body = await request.json();
-  const validation = ticketSchema.safeParse(body);
 
+  const validation = ticketPatchSchema.safeParse(body);
   if (!validation.success)
     return NextResponse.json(validation.error.format(), { status: 400 });
 
@@ -20,6 +20,9 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 
   if (!ticket)
     return NextResponse.json({ error: 'Ticket Not Found' }, { status: 404 });
+
+  if (body?.assignedToUserId)
+    body.assignedToUserId = parseInt(body.assignedToUserId);
 
   const updatedTicket = await prisma.ticket.update({
     where: { id: ticket.id },
@@ -40,6 +43,8 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     return NextResponse.json({ error: 'Ticket Not Found' }, { status: 404 });
 
   await prisma.ticket.delete({ where: { id: ticket.id } });
+
+  revalidateTag(`/ticket/${params.id}`);
 
   return NextResponse.json({ message: 'Ticket Deleted' });
 }
