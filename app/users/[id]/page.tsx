@@ -1,11 +1,18 @@
+import options from '@/app/api/auth/[...nextauth]/options';
 import UserForm from '@/components/UserForm';
 import prisma from '@/prisma/db';
+import { getServerSession } from 'next-auth';
 
 type EditUserProps = {
   params: { id: string };
 };
 
 async function EditUser({ params }: EditUserProps) {
+  const session = await getServerSession(options);
+
+  if (session?.user.role !== 'ADMIN')
+    return <p className="text-destructive">Admin access required.</p>;
+
   const user = await prisma.user.findUnique({
     where: {
       id: parseInt(params.id),

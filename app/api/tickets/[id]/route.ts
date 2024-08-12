@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/prisma/db';
 import { ticketPatchSchema } from '@/ValidationSchemas/ticket';
 import { revalidateTag } from 'next/cache';
+import { getServerSession } from 'next-auth';
+import options from '../../auth/[...nextauth]/options';
 
 interface Props {
   params: { id: string };
