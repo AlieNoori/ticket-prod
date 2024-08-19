@@ -27,7 +27,12 @@ cd ticket-prod
 npm install
 ```
 
-4. Run dev server:
+4. Create prisma migration:
+```bash
+npx prisma migrate dev
+```
+
+6. Run dev server:
 ```bash
 npm run dev
 ```
